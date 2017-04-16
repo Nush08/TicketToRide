@@ -1,0 +1,153 @@
+//
+//  ADP TTR 4.cpp
+//  CPLEX 2
+//
+//  Created by Anushka Iyengar on 4/7/17.
+//  Copyright © 2017 Anushka Iyengar. All rights reserved.
+//
+
+#include <stdio.h>
+#include <random>
+#include<iostream>
+#include <math.h>
+using namespace std;
+/**int pickTicket(int a){
+    int PossibleTickets[36][36];
+    for (int i=0;i<totalTickets;i++){
+        PossibleTickets[i]=1;
+    }
+    return PossibleTickets[a][i];
+    
+}
+*/
+int terminalValue(int a, int b){
+    if (a<b){
+        value=terminalreward[a][b];
+    }
+    else {
+        value=terminalreward[b][a];
+    }
+}
+//Main Function
+int main(){
+    //Main Graph
+    int graph[36][36] = {
+        {0,	-1,	0,	0,	0,	-3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {-1, 0,	-1,	0,	0,	-4,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	-1,	0,	-5,	0,	0,	-6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	-5,	0,	-3,	0,	-5,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	-3,	0,	0,	0,	0,	-2,	-3,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {-3,-4,	0,	0,	0,	0,	0,	0,	0,	-6,	-4,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	-6,	-5,	0,	0,	0,	-3,	0,	0,	-3,	-3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	-2,	0,	-3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	-3,	0,	0,	0,	0,	0,	0,	-5,	-3,	-3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	-4,	0,	0,	0,	-4,	0,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	-6,	0,	0,	0,	-4,	-3,	0,	0,	-4,	0,	-4,	0,	0,	-6,	-5,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	-3,	0,	-5,	0,	-4,	0,	-2,	0,	0,	-4,	-4,	-4,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	-3,	0,	0,	-2,	0,	-2,	0,	0,	0,	-3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	-6,	0,	0,	0,	-3,	0,	0,	0,	-2,	0,	0,	0,	0,	-5,	-4,	-6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	-4,	-6,	0,	0,	0,	0,	-2,	0,	0,	0,	0,	-3,	-3,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-5,	-4,	0,	0,	-2,	0,	-1,	0,	0,	0,	0,	-4,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-4,	0,	0,	0,	-1,	0,	-2,	0,	0,	0,	0,	-2,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-4,	-3,	-5,	0,	0,	-2,	0,	-2,	0,	0,	0,	0,	-2,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-4,	0,	0,	0,	-2,	0,	-1,	0,	0,	0,	-2,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	-1,	0,	0,	0,	0,	0,	-2,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	-3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-5,	-2,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-3,	-4,	0,	0,	0,	0,	0,	0,	-2,	0,	0,	0,	-4,	-3,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-2,	0,	0,	0,	0,	-2,	0,	-2,	0,	0,	0,	-5,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-2,	-2,	0,	0,	0,	-2,	0,	-3,	0,	0,	0,	-3,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-2,	0,	0,	0,	-3,	0,	0,	0,	0,	0,	-4,	0,	0,	0,	0,	0,	-6},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-5,	0,	0,	0,	0,	0,	-3,	0,	0,	0,	-2,	-3,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	0,	-2,	-4,	0,	0,	0,	-3,	0,	-2,	0,	0,	0,	0,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-3,	-5,	0,	0,	0,	-2,	0,	-4,	0,	0,	-2,	-2,	-2,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-3,	0,	0,	0,	-4,	0,	-1,	0,	0,	0,	-3,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-4,	0,	0,	0,	-1,	0,	0,	0,	0,	-2,	-2,	-5},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-2,	0,	0,	0,	0,	0,	-2,	0,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-3,	0,	-2,	0,	0,	-2,	0,	-2,	0,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-2,	0,	0,	0,	-2,	0,	-2,	0,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-2,	-3,	-2,	0,	0,	-2,	0,	-2,	0},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-2,	0,	0,	0,	-2,	0,	-4},
+        {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	-6,	0,	0,	0,	0,	-5,	0,	0,	0,	0,	-4,	0}
+    };
+
+    //Initialize Variables
+    int startNode; //your starting node
+    int endNode; //ending node
+
+    //Choose initial ticket
+    int ticketNumber;//which ticket are you choosing
+    //pick starting node
+    ticketNumber= rand() 10;
+    startNode=ticketNumber;
+    //endNode= pickTicket(startNode);
+    endNode=rand()%36;
+
+    //Saves value of each node at each time
+    double V[46][36];
+    //Saves value of each node at each time and each possible path
+    double U[46][36][36];
+
+    //set terminal values
+     for (int t=0; t<45;t++){ 
+        V[t][endNode]=terminalValue(startNode)(endNode)
+     }
+//Evalute the next node to go to
+    //Determine the value of each possible move
+    //V[t][i]=reward[i][a]+p[j|i,a]V[t][j]
+    int reward[7];
+    reward=[0,1,2,4,7,10,15]
+    for (int a=0;a<7;a++){
+        sum= reward[a]+[probability of next space being available][value at next space]
+        Probability of the space being available at your next turn
+    }
+    //Choose optimal node
+    //mark path as no longer feasible
+    //Value of a point is = the max points from that point to end 
+    //Value is the distance from node j to endNode * probability that the leg will be there
+    //that will be 
+
+    for (int t=0; t<45;t++){
+        for (int i=0;i<36;i++){ 
+            for(int j=0;j<36;j++){
+                if (graph[i][j] != 0){
+                    U[t][i][j]=graph[i][j]+V[t+1][j];
+                }
+                else
+                    U[t][i][j]=0;   
+                //D[i][j]= (sizeof(V[j])/sizeof(V[0]));
+            }//end of for j loop
+            
+            V[t][i]=U[t][i][0]
+            for(int j=1;j<36;j++){
+                V[t][i]= max(V[t][i],U[t][i][j])
+            }//end of for j loop
+        cout <<"The Value at time t="<<t<<" for node i="<<i<<" is "<<V[t][i]<<"\n";
+        }//end of i loop find optimal value of each node for a specific time
+        
+        //W=randomness
+        //remove randomness by predefining path 1 of 10 paths;
+        //each turn, have it go function and return action
+        //implement action on turn
+        int a,b;
+        opponentMove=0;
+        while(opponentMove=0){
+            a= rand() %36;
+            b= rand() %36;
+            if (graph[a][b] != 0){
+            graph[a][b]=0;
+            graph[b][a]=0;
+            opMoves[t]=[a][b];
+            opponentMove=1;          
+            }
+            else 
+            opponentMove=0;
+        }//end of While loop
+        
+        
+    }//end of t loop essentially each turn in the game
+
+    //Simulation
+    
+   
+//REPEAT until either terminal value reached or no longer possible
+}//end of main function

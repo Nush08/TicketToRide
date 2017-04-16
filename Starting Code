@@ -1,0 +1,62 @@
+//
+//  ADP TTR 4.cpp
+//  CPLEX 2
+//
+//  Created by Anushka Iyengar on 4/7/17.
+//  Copyright © 2017 Anushka Iyengar. All rights reserved.
+//
+
+#include <stdio.h>
+#include <random>
+#include<iostream>
+#include <math.h>
+using namespace std;
+/**int pickTicket(int a){
+    int PossibleTickets[36][36];
+    for (int i=0;i<totalTickets;i++){
+        PossibleTickets[i]=1;
+    }
+    return PossibleTickets[a][i];
+    
+}
+*/
+//Values of adjacency graph
+int adjGraph(int i, int j){
+
+}
+//Main Function
+int main(){
+    //Initialize Variables
+    int startNode; //your starting node
+    int endNode; //ending node
+
+    //Choose initial ticket
+    int ticketNumber;//which ticket are you choosing
+    //pick starting node
+    ticketNumber= rand() 10;
+    startNode=ticketNumber;
+    //endNode= pickTicket(startNode);
+    endNode=rand()%36;
+
+    //set terminal values
+    V[endNode]=terminalValue(startNode)(endNode)
+//Evalute the next node to go to
+    //Determine the value of each possible move
+    //V[t][i]=reward[i][a]+p[j|i,a]V[t][j]
+    int reward[7];
+    reward=[0,1,2,4,7,10,15]
+    for (int a=0;a<7;a++){
+        sum= reward[a]+[probability of next space being available][value at next space]
+        Probability of the space being available at your next turn
+    }
+    //Choose optimal node
+    //mark path as no longer feasible
+
+
+//LATER
+    //W=randomness
+        //remove randomness by predefining path 1 of 10 paths;
+        //each turn, have it go function and return action
+        //implement action on turn
+//REPEAT until either terminal value reached or no longer possible
+}//end of main function

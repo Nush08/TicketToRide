@@ -39,6 +39,18 @@ int minDistance(int dist[], bool sptSet[])
     return min_index;
 }
 
+//Function to find max of two values
+double max(int a, int b){
+  int maximum;
+  if(a>b){
+    maximum=a;
+  }
+  else{
+    maximum=b;
+  }
+  return maximum;
+}
+
 // Function to print shortest path from source to j
 // using parent array
 void printPath(int parent[], int j)
@@ -182,7 +194,8 @@ int main()
 {
     /* Let us create the example graph discussed above */
     //adjacency matrix
-    int graph[V][V] = {{0, 4, 0, 0, 0, 0, 0, 8, 0},
+    int graph[V][V] = {
+        {0, 4, 0, 0, 0, 0, 0, 8, 0},
         {4, 0, 8, 0, 0, 0, 0, 11, 0},
         {0, 8, 0, 7, 0, 4, 0, 0, 2},
         {0, 0, 7, 0, 9, 14, 0, 0, 0},
@@ -193,7 +206,8 @@ int main()
         {0, 0, 2, 0, 0, 0, 6, 7, 0}
     };
     //reward matrix
-    int cost[V][V] = {{0, 4, 0, 0, 0, 0, 0, 8, 0},
+    int cost[V][V] = {
+        {0, 4, 0, 0, 0, 0, 0, 8, 0},
         {4, 0, 8, 0, 0, 0, 0, 11, 0},
         {0, 8, 0, 7, 0, 4, 0, 0, 2},
         {0, 0, 7, 0, 9, 14, 0, 0, 0},
@@ -205,19 +219,33 @@ int main()
     };
     dijkstra(graph,cost);
     cout << path[1][1];
+    double M[V];
+    double Q[V][V];
 
-    //number of edges in path
+     //number of edges in path
     int size[V] ={};
     for (int i=0;i<V;i++){
-      for(int j=0;j<V;j++){
-        if (path[i][j] !=0){
+      for(int j=1;j<V;j++){
+        if (path[i+1][j] !=0 ){
           size[i]=size[i]+1;
         }
         else
           size[i]=size[i];
       }
-      //cout << "The total plays from "<<i<<" to src is "<<size[i]<<"\n";
+      cout << "The total plays from "<<i<<" to "<<src<<" is "<<size[i]<<"\n";
     }//end number of edges for loop
+
+    for (int i=0;i<V;i++){
+        for (int j=0;j<V;j++){
+            Q[i][j]=cost[i][j]+(pow (.5, size[i]))*M[j];
+        }
+        for (int j=0;j<V;j++){
+            M[i]=max(M[i],Q[i][j]);
+        }
+        cout <<"for i="<<i<<" the value is "<<M[i]<<"\n";
+    }
+
+   
 
     return 0;
 }

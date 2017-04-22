@@ -1,0 +1,237 @@
+//
+//  TTR Movement.cpp
+//  CPLEX 2
+//
+//  Created by Anushka Iyengar on 4/22/17.
+//  Copyright © 2017 Anushka Iyengar. All rights reserved.
+//
+
+#include <stdio.h>
+#include <limits.h>
+#include <math.h>
+# include<iostream>
+using namespace std;
+
+
+#define V 9
+const int A=6;
+const int src=8; //reward node
+int dist[V];
+
+int max6(double a,double b,double c,double d,double e,double f){
+    int maximum=0;
+    int maximumab=0;
+    int maximumcd=0;
+    int maximumef=0;
+    int outputab;
+    int outputcd;
+    int outputef;
+    int output=0;
+    
+    //compare a and b
+    if (a>b){
+        maximumab=a;
+        outputab=0;
+    }
+    else {
+        maximumab=b;
+        outputab=1;
+    }
+    //compare c and d
+    if (c>d){
+        maximumcd=c;
+        outputcd=2;
+    }
+    else{
+        maximumcd=d;
+        outputcd=3;
+    }
+    //compare e and f
+    if (e>f){
+        maximumef=e;
+        outputef=4;
+    }
+    else{
+        maximumef=f;
+        outputef=5;
+    }
+    //compare max of ab and cd
+    if (maximumab>maximumcd){
+        maximum=maximumab;
+        output=outputab;
+    }
+    else{
+        maximum=maximumcd;
+        output=outputcd;
+    }
+    
+    //find max of all
+    if (maximum>maximumef){
+        maximum=maximum;
+        output=output;
+    }
+    else{
+        maximum=maximumef;
+        output=outputef;
+    }
+    
+    //max action
+    return output;
+}
+
+
+//Minimum Distance Function
+int minDistance(int dist[], bool sptSet[])
+{
+    // Initialize min value
+    int min = INT_MAX;
+    int min_index=0;
+    for (int v = 0; v < V; v++){
+        if (sptSet[v] == false && dist[v] <= min){
+            min = dist[v], min_index = v;
+        }
+    }
+    return min_index;
+}
+
+
+//Dijkstra Function
+void dijkstra(int graph[V][V])
+{
+    // sptSet[i] will true if vertex i is included / in shortest
+    // path tree or shortest distance from src to i is finalized
+    bool sptSet[V];
+    
+    // Parent array to store shortest path tree
+    int parent[V];
+    
+    // Initialize all distances as INFINITE and stpSet[] as false
+    for (int i = 0; i < V; i++)
+    {
+        parent[src] = -1;
+        dist[i] = INT_MAX;
+        sptSet[i] = false;
+    }
+    
+    // Distance of source vertex from itself is always 0
+    dist[src] = 0;
+    
+    // Find shortest path for all vertices
+    for (int count = 0; count < V-1; count++)
+    {
+        // Pick the minimum distance vertex from the set of
+        // vertices not yet processed. u is always equal to src
+        // in first iteration.
+        int u = minDistance(dist, sptSet);
+        
+        // Mark the picked vertex as processed
+        sptSet[u] = true;
+        
+        // Update dist value of the adjacent vertices of the
+        // picked vertex.
+        for (int v = 0; v < V; v++)
+            
+            // Update dist[v] only if is not in sptSet, there is
+            // an edge from u to v, and total weight of path from
+            // src to v through u is smaller than current value of
+            // dist[v]
+            if (!sptSet[v] && graph[u][v] &&
+                dist[u] + graph[u][v] < dist[v])
+            {
+                parent[v]  = u;
+                dist[v] = dist[u] + graph[u][v];
+            }
+    }
+}//end dijkstra function
+
+
+int main(){
+    int graph[V+1][V+1] = {
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 4, 0, 0, 0, 0, 0, 2, 0},
+        {0, 4, 0, 2, 0, 0, 0, 0, 1, 0},
+        {0, 0, 2, 0, 3, 0, 4, 0, 0, 1},
+        {0, 0, 0, 3, 0, 2, 4, 0, 0, 0},
+        {0, 0, 0, 0, 2, 0, 5, 0, 0, 0},
+        {0, 0, 0, 4, 0, 5, 0, 2, 0, 0},
+        {0, 0, 0, 0, 0, 0, 2, 0, 6, 5},
+        {0, 2, 1, 0, 0, 0, 0, 6, 0, 3},
+        {0, 0, 0, 1, 0, 0, 0, 5, 3, 0}
+    }; //end graph
+    
+    int moves[V+1][A]={
+        {0,	0,	0,	0,	0,	0},
+        {0,	8,	0,	2,	0,	0},
+        {8,	3,	0,	1,	0,	0},
+        {9,	2,	4,	6,	0,	0},
+        {0,	5,	3,	6,	0,	0},
+        {0,	4,	0,	0,	6,	0},
+        {0,	7,	0,	3,	5,	0},
+        {0,	6,	0,	0,	9,	8},
+        {2,	1,	9,	0,	0,	7},
+        {3,	0,	8,	0,	7,	0},
+    };
+    
+    int startNode=3;
+    
+    int nextNode;
+    int tempNextNode;
+    //dijkstra(graph);
+    int T=7;
+    int path[T];
+    path[0]=startNode;
+    int tempValue[V][V];
+    int optAction[startNode];
+    int opStartNode=rand()%9;
+    int opPath[T];
+    opPath[0]=opStartNode;
+    int opNextNode;
+    int opAction;
+    
+    for (int t=1;t<T;t++){
+        
+        for (int a=0;a<A;a++){
+            tempNextNode=moves[startNode][a];
+            if(tempNextNode==0){
+                tempValue[startNode][a]=0;
+
+                cout<<"I cannot move from "<<startNode<<" to "<<tempNextNode<<" with action "<<a<<" so this move has a value of "<<tempValue[startNode][a]<<"\n";
+            }
+            else{
+                tempValue[startNode][a]=pow((a+1),2);
+
+                cout<<"I can move from "<<startNode<<" to "<<tempNextNode<<" with action "<<a<<" so this move has a value of "<<tempValue[startNode][a]<<"\n";
+                
+            }
+        }//end of possible action
+        optAction[startNode]=max6(tempValue[startNode][0],tempValue[startNode][1],tempValue[startNode][2],tempValue[startNode][3],tempValue[startNode][4],tempValue[startNode][5]);
+        cout<<"optaction output:"<<optAction[startNode]<<"\n";
+        nextNode=moves[startNode][optAction[startNode]];
+        cout<<"the optimal action is "<<optAction[startNode]<<" taking us from "<<startNode<<" to "<<nextNode<<"\n\n\n";
+        path[t]=nextNode;
+        graph[startNode][nextNode]=0;
+        graph[nextNode][startNode]=0;
+        moves[startNode][optAction[startNode]]=0;
+        moves[nextNode][optAction[startNode]]=0;
+        startNode=nextNode;
+        
+        //Opponent
+        opAction=rand()%5;
+        opNextNode=moves[opStartNode][opAction];
+        if(opNextNode==0){
+        cout<<"opponent doesn't move\n";
+            opStartNode=opStartNode;
+        }
+        else{
+            cout<<"Opponent goes from "<<opStartNode<<" to "<<opNextNode<<"\n";
+            graph[opStartNode][opStartNode]=0;
+            graph[opStartNode][opStartNode]=0;
+            moves[opStartNode][opAction]=0;
+            moves[opStartNode][opAction]=0;
+            opStartNode=opStartNode;
+        }
+        
+    }//time
+    
+}//end main
+

@@ -1,0 +1,519 @@
+//
+//  TTR Movement.cpp
+//  CPLEX 2
+//
+//  Created by Anushka Iyengar on 4/22/17.
+//  Copyright © 2017 Anushka Iyengar. All rights reserved.
+//
+
+#include <stdio.h>
+#include <limits.h>
+#include <math.h>
+# include<iostream>
+using namespace std;
+
+
+#define V 37
+const int A=6;
+//const int src=8; //reward node
+int dist[V];
+double Q[V][45][501][501]={0};
+
+int max6(double a,double b,double c,double d,double e,double f){
+    int maximum=0;
+    int maximumab=0;
+    int maximumcd=0;
+    int maximumef=0;
+    int outputab;
+    int outputcd;
+    int outputef;
+    int output=0;
+    
+    //compare a and b
+    if (a>b){
+        maximumab=a;
+        outputab=0;
+    }
+    else {
+        maximumab=b;
+        outputab=1;
+    }
+    //compare c and d
+    if (c>d){
+        maximumcd=c;
+        outputcd=2;
+    }
+    else{
+        maximumcd=d;
+        outputcd=3;
+    }
+    //compare e and f
+    if (e>f){
+        maximumef=e;
+        outputef=4;
+    }
+    else{
+        maximumef=f;
+        outputef=5;
+    }
+    //compare max of ab and cd
+    if (maximumab>maximumcd){
+        maximum=maximumab;
+        output=outputab;
+    }
+    else{
+        maximum=maximumcd;
+        output=outputcd;
+    }
+    
+    //find max of all
+    if (maximum>maximumef){
+        maximum=maximum;
+        output=output;
+    }
+    else{
+        maximum=maximumef;
+        output=outputef;
+    }
+    
+    //max action
+    return output;
+}
+
+
+//Minimum Distance Function
+int minDistance(int dist[], bool sptSet[])
+{
+    // Initialize min value
+    int min = INT_MAX;
+    int min_index=0;
+    for (int v = 0; v < V; v++){
+        if (sptSet[v] == false && dist[v] <= min){
+            min = dist[v], min_index = v;
+        }
+    }
+    return min_index;
+}
+
+
+//Dijkstra Function
+void dijkstra(int graph[V][V],int src)
+{
+    // sptSet[i] will true if vertex i is included / in shortest
+    // path tree or shortest distance from src to i is finalized
+    bool sptSet[V];
+    
+    // Parent array to store shortest path tree
+    int parent[V];
+    
+    // Initialize all distances as INFINITE and stpSet[] as false
+    for (int i = 0; i < V; i++)
+    {
+        parent[src] = -1;
+        dist[i] = INT_MAX;
+        sptSet[i] = false;
+    }
+    
+    // Distance of source vertex from itself is always 0
+    dist[src] = 0;
+    
+    // Find shortest path for all vertices
+    for (int count = 0; count < V-1; count++)
+    {
+        // Pick the minimum distance vertex from the set of
+        // vertices not yet processed. u is always equal to src
+        // in first iteration.
+        int u = minDistance(dist, sptSet);
+        
+        // Mark the picked vertex as processed
+        sptSet[u] = true;
+        
+        // Update dist value of the adjacent vertices of the
+        // picked vertex.
+        for (int v = 0; v < V; v++)
+            
+            // Update dist[v] only if is not in sptSet, there is
+            // an edge from u to v, and total weight of path from
+            // src to v through u is smaller than current value of
+            // dist[v]
+            if (!sptSet[v] && graph[u][v] &&
+                dist[u] + graph[u][v] < dist[v])
+            {
+                parent[v]  = u;
+                dist[v] = dist[u] + graph[u][v];
+            }
+    }
+}//end dijkstra function
+
+
+int main(){
+    int reward[6];
+    reward[0]=1;
+    reward[1]=2;
+    reward[2]=4;
+    reward[3]=7;
+    reward[4]=10;
+    reward[5]=15;
+    
+    int bonus=20;
+    
+    int totalCount=0;
+    int totalIterations=100;
+    double alpha=0.1;
+    double w1=1.0;
+    double w2=-1.0;
+    double w3=1.0;
+    double gamma=.4;
+    
+    for(int iteration=0;iteration<totalIterations;iteration++){
+        cout<<"Game:"<<iteration<<"\n";
+        int graph[V][V] = {
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	2,	0,	0,	0,	3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	2,	0,	1,	0,	0,	4,	6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	1,	0,	5,	0,	0,	0,	6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	5,	0,	3,	0,	0,	4,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	3,	0,	0,	0,	0,	2,	4,	0,	0,	0,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	3,	4,	0,	0,	0,	0,	2,	0,	0,	0,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	6,	0,	0,	0,	2,	0,	3,	0,	0,	4,	1,	0,	0,	0,	5,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	6,	4,	0,	0,	3,	0,	5,	0,	0,	2,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	2,	0,	0,	5,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	4,	0,	0,	0,	0,	0,	0,	5,	0,	3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	1,	4,	0,	0,	0,	0,	0,	0,	0,	5,	0,	0,	0,	0,	0,	6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	1,	2,	0,	5,	0,	0,	3,	0,	0,	0,	6,	4,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	3,	0,	2,	0,	0,	0,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	3,	0,	0,	2,	0,	0,	0,	0,	5,	4,	6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	5,	0,	0,	0,	0,	2,	0,	0,	0,	0,	3,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	5,	0,	0,	0,	0,	0,	0,	0,	2,	0,	1,	0,	0,	0,	0,	6,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	6,	0,	0,	0,	1,	0,	2,	0,	0,	0,	0,	3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	4,	1,	5,	0,	0,	2,	0,	6,	0,	0,	0,	0,	3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	4,	0,	0,	0,	6,	0,	1,	0,	0,	0,	2,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	6,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	2,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	6,	0,	0,	0,	3,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	5,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,	6,	0,	0,	0,	0,	0,	0,	2,	0,	0,	0,	4,	3,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	3,	0,	0,	0,	0,	2,	0,	1,	0,	0,	0,	5,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	3,	2,	0,	0,	0,	1,	0,	5,	0,	0,	0,	6,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	2,	0,	0,	0,	5,	0,	0,	0,	0,	0,	4,	0,	0,	0,	0,	0,	6},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	5,	0,	0,	0,	0,	0,	3,	0,	0,	0,	2,	4,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,	4,	0,	0,	0,	3,	0,	2,	0,	0,	0,	0,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	3,	5,	0,	0,	0,	2,	0,	4,	0,	0,	6,	0,	1,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	6,	0,	0,	0,	4,	0,	1,	0,	0,	0,	3,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	4,	0,	0,	0,	1,	0,	0,	0,	0,	2,	3,	5},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	2,	0,	0,	0,	0,	0,	3,	0,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	4,	0,	6,	0,	0,	3,	0,	1,	0,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,	0,	4,	0,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,	3,	2,	0,	0,	4,	0,	5,	0},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	3,	0,	0,	0,	5,	0,	4},
+                {0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	6,	0,	0,	0,	0,	5,	0,	0,	0,	0,	4,	0}
+        }; //end graph
+        
+        int moves[V][A]={
+            {0,	0,	0,	0,	0,	0},
+            {0,	2,	6,	0,	0,	0},
+            {3,	1,	0,	6,	0,	7},
+            {2,	0,	0,	0,	4,	8},
+            {0,	0,	5,	8,	3,	0},
+            {14,9,	4,	10,	0,	0},
+            {11,7,	1,	2,	0,	0},
+            {12,6,	8,	11,	16,	2},
+            {0,	12,	7,	4,	9,	6},
+            {0,	5,	0,	0,	8,	0},
+            {0,	0,	14,	5,	12,	0},
+            {6,	0,	0,	7,	15,	21},
+            {7,	8,	13,	18,	10,	17},
+            {18,14,	12,	0,	0,	0},
+            {5,	13,	10,	19,	18,	20},
+            {22,16,	21,	0,	11,	0},
+            {17,15,	0,	0,	7,	22},
+            {16,18,	23,	0,	0,	12},
+            {13,17,	24,	12,	14,	19},
+            {20,24,	0,	14,	0,	18},
+            {19,25,	0,	0,	0,	14},
+            {27,0,	15,	0,	26,	11},
+            {15,23,	28,	27,	0,	16},
+            {24,22,	17,	0,	18,	0},
+            {23,19,	18,	0,	25,	29},
+            {0,	20,	0,	30,	24,	36},
+            {0,	31,	27,	32,	21,	0},
+            {21,28,	26,	22,	0,	0},
+            {34,27,	22,	29,	23,	32},
+            {30,0,	34,	28,	0,	24},
+            {29,34,	35,	25,	36,	0},
+            {0,	26,	32,	0,	0,	0},
+            {33,0,	31,	26,	0,	28},
+            {32,0,	0,	34,	0,	0},
+            {28,30,	29,	33,	35,	0},
+            {0,	0,	30,	36,	34,	0},
+            {0,	0,	0,	35,	30,	25}
+        };
+        // int start=(rand()%8)+1;
+        int startNode=rand()%36;
+        
+        int nextNode;
+        int tempNextNode;
+        int rewardNode=(rand()%35)+1;
+        int T=35;
+        int path[T];
+        path[0]=startNode;
+        int tempValue[V][V];
+        int totalValue=0;
+        int trainsLeft=45;
+        int counter=0;
+        
+        
+        int optAction[startNode];
+        int opStartNode=(rand()%36);
+        int opPath[T];
+        opPath[0]=opStartNode;
+        int opNextNode=0;//changing
+        int opAction;
+        int opTotalValue=0;
+        int opRewardNode=(rand()%35)+1;
+        int opCounter=0;
+        int opTrainsLeft=45;
+        //basis function, Q[distance to reward][distancet to opponent]=w1*1/d1^2+w2*1/d2^2
+        
+        double actualValue[V];
+        double expectedValue[V];
+        double difference[V];
+        
+        int d1;
+        int d2;
+        int tempd1;
+        int tempd2;
+        int totalTurns=0;
+        double F1,F2,F3;
+        double temp;
+        
+        for (int t=1;t<T;t++){
+            
+            if (opTrainsLeft<2){
+                t=T;
+                //totalTurns=t;
+            }
+            else{
+                t=t;
+            }
+            
+            dijkstra(graph,rewardNode);
+            d1=dist[startNode];
+            if (fabs(d1)>1000){
+                d1=500;
+            }
+            else{
+                d1=d1;
+            }
+            dijkstra(graph,opStartNode);
+            d2=dist[startNode];
+            if (fabs(d2)>1000){
+                d2=500;
+            }
+            else{
+                d2=d2;
+            }
+            F1=1.0/(pow(d1+1,2));
+            F2=1.0/(pow(d2+1,2));
+            F3=1.0/(45-trainsLeft+1);
+            
+            expectedValue[startNode]=w1*F1+w2*F2+w3*F3;
+            Q[startNode][trainsLeft][d1][d2]=expectedValue[startNode];
+            
+            //Q[startNode][d1][d2]=expectedValue[startNode];
+            //cout<<"distance to reward:"<<d1<<" distance to op:"<<d2<<"\n";
+            //cout<<"the expect value of being in "<<startNode<<" is "<<expectedValue[startNode]<<"\n";
+            //Q[d1][d2]=expectedValue[startNode];
+            
+            
+            for (int a=0;a<A;a++){
+                tempNextNode=moves[startNode][a];
+                if(tempNextNode==0){
+                    tempValue[startNode][a]=0;
+                    //cout<<"I cannot move from "<<startNode<<" to "<<tempNextNode<<" with action "<<a<<" so this move has a value of "<<tempValue[startNode][a]<<"\n";
+                }
+                else{
+                    dijkstra(graph,rewardNode);
+                    tempd1=dist[tempNextNode];
+                    if (fabs(tempd1)>1000){
+                        tempd1=500;
+                    }
+                    else{
+                        tempd1=tempd1;
+                    }
+                
+                    dijkstra(graph,opStartNode);
+                    tempd2=dist[tempNextNode];
+                    if (fabs(tempd2)>1000){
+                        tempd2=500;
+                    }
+                    else{
+                        tempd2=tempd2;
+                    }
+                    if (tempNextNode=rewardNode){
+                        tempValue[startNode][a]=bonus+reward[a]+gamma*Q[tempNextNode][trainsLeft-a-1][tempd1][tempd2];
+                    }
+                    else{
+                        tempValue[startNode][a]=reward[a]+gamma*Q[tempNextNode][trainsLeft-a-1][tempd1][tempd2];
+                    }
+                    //cout<<"I can move from "<<startNode<<" to "<<tempNextNode<<" with action "<<a<<" so this move has a value of "<<tempValue[startNode][a]<<"\n";
+                }
+            }//end of possible action
+            
+            //optimal action
+            optAction[startNode]=max6(tempValue[startNode][0],tempValue[startNode][1],tempValue[startNode][2],tempValue[startNode][3],tempValue[startNode][4],tempValue[startNode][5]);
+            //if optimal action takes you to zero, ie no moves left from node, randomly go to new node;
+            if (moves[startNode][optAction[startNode]]==0){
+                nextNode=(rand()%9)+1;
+                totalValue=totalValue-5;
+            }
+            else{
+                if ((nextNode==rewardNode) && (counter=0)){
+                    nextNode=moves[startNode][optAction[startNode]];
+                    totalValue=bonus+totalValue+reward[optAction[startNode]];
+                }
+                else{
+                    nextNode=moves[startNode][optAction[startNode]];
+                    totalValue=totalValue+reward[optAction[startNode]];
+                }
+            }
+            
+            //cout<<"optaction output:"<<optAction[startNode]<<"\n";
+            actualValue[startNode]=tempValue[startNode][optAction[startNode]];
+            difference[startNode]=actualValue[startNode]-Q[startNode][trainsLeft][d1][d2];
+            //difference[startNode]=actualValue[startNode]-expectedValue[startNode];
+            //cout<<"the expect value of being in "<<startNode<<" is "<<expectedValue[startNode]<<"and the actual value is "<<actualValue[startNode]<<" giving a difference of "<<difference[startNode]<<"\n";
+            w1=w1+alpha*difference[startNode]*F1;
+            w2=w2+alpha*difference[startNode]*F2;
+            w3=w3+alpha*difference[startNode]*F3;
+            cout<<"Game:"<<iteration<<" w1:"<<w1<<" w2:"<<w2<<" w3:"<<w3<<"\n";
+            Q[startNode][trainsLeft][d1][d2]=Q[startNode][trainsLeft][d1][d2]+alpha*difference[startNode];
+            //cout<<"The expected value of being at node:"<<startNode<<" with d1:"<<d1<<" d2:"<<d2<<" is "<<Q[startNode][trainsLeft][d1][d2]<<"\n";
+            
+            //cout<<"the optimal action is "<<optAction[startNode]<<" taking us from "<<startNode<<" to "<<nextNode<<"\n";
+            graph[startNode][nextNode]=0;
+            graph[nextNode][startNode]=0;
+            moves[startNode][optAction[startNode]]=0;
+            moves[nextNode][optAction[startNode]]=0;
+            //totalValue=totalValue+reward[optAction[startNode]];
+            trainsLeft=trainsLeft-optAction[startNode]-1;
+            path[t]=nextNode;
+            startNode=nextNode;
+            
+            //cout<<"trains left"<<trainsLeft<<"\n";
+            //Opponent
+            //opAction=rand()%5;
+            //opNextNode=moves[opStartNode][opAction];
+            if (opTrainsLeft<2){
+                t=T;
+            }
+            else{
+            int dice=0;
+            opNextNode=0;
+            while(opNextNode==0){
+                if(moves[opStartNode][5]!=0){
+                    opAction=5;
+                    opNextNode=moves[opStartNode][opAction];
+                }
+                else if(moves[opStartNode][4]!=0){
+                    opAction=4;
+                    opNextNode=moves[opStartNode][opAction];
+                }
+                else if(moves[opStartNode][3]!=0){
+                    opAction=3;
+                    opNextNode=moves[opStartNode][opAction];
+                }
+                else if(moves[opStartNode][2]!=0){
+                    opAction=2;
+                    opNextNode=moves[opStartNode][opAction];
+                }
+                else if(moves[opStartNode][1]!=0){
+                    opAction=1;
+                    opNextNode=moves[opStartNode][opAction];
+                }
+                //(moves[opStartNode][0]=0)
+                else if(moves[opStartNode][0]!=0){
+                    opAction=0;
+                    opNextNode=moves[opStartNode][opAction];
+                }
+                else{
+                    opAction=7;
+                    opNextNode=rand()%9;
+                }
+                /**opAction=rand()%5;
+                opNextNode=moves[opStartNode][opAction];
+                dice=dice+1;
+                if(dice==10){
+                    opAction=7;
+                    opNextNode=rand()%9;
+                }
+                 */
+            }
+            if(opNextNode==0){
+                
+                //cout<<"opponent doesn't move\n";
+                opStartNode=opStartNode;
+            }
+            else{
+                cout<<"Opponent goes from "<<opStartNode<<" to "<<opNextNode<<" with action "<<opAction<<"\n";
+                if(opAction==7){
+                    opStartNode=opNextNode;
+                    opTotalValue=opTotalValue-5;
+                }
+                
+                else{
+                    if ((opNextNode==opRewardNode) && (opCounter==0)){
+                        opTotalValue=bonus+opTotalValue+reward[opAction];
+                        opCounter=1;
+                    }
+                    else{
+                        opTotalValue=opTotalValue+reward[opAction];
+                    }
+
+                    graph[opStartNode][opNextNode]=0;
+                    graph[opNextNode][opStartNode]=0;
+                    moves[opStartNode][opAction]=0;
+                    moves[opNextNode][opAction]=0;
+                    opStartNode=opNextNode;
+                    
+                }
+                opTrainsLeft=opTrainsLeft=opAction-1;
+            }
+            }
+            //cout<<"The score is You:"<<totalValue<<" Op:"<<opTotalValue<<"\n";
+            //EndGame before time is called
+            if (trainsLeft<2){
+                t=T;
+                //totalTurns=t;
+            }
+            else{
+                t=t;
+            }
+            totalTurns=totalTurns+1;
+        }//time
+        if(counter==0){
+            if(totalValue<opTotalValue){
+                cout<<"You Lose! You:"<<totalValue<<" Op:"<<opTotalValue<<" in "<<totalTurns<<" turns and you did not reach your goal of "<<rewardNode<<"\n\n\n";
+            }
+            else{
+                cout<<"You Win! You:"<<totalValue<<" Op:"<<opTotalValue<<" in "<<totalTurns<<" turns and you did not reach your goal of "<<rewardNode<<"\n\n\n";
+                totalCount=totalCount+1;
+            }
+        }
+        else{
+            if(totalValue<opTotalValue){
+                cout<<"You Lose! You:"<<totalValue<<" Op:"<<opTotalValue<<" in "<<totalTurns<<" turns and you did reach your goal of "<<rewardNode<<"\n\n\n";
+            }
+            else{
+                cout<<"You Win! You:"<<totalValue<<" Op:"<<opTotalValue<<" in "<<totalTurns<<" turns and you did reach your goal of "<<rewardNode<<"\n\n\n";
+                totalCount=totalCount+1;
+            }
+            
+        }
+    }
+    cout<<"You've won "<<totalCount<<" out of "<<totalIterations<<" games!\n";
+}//end main
+
+//removing for test
+/**F1=1.0/(tempd1+1);
+ F2=1.0/(d2+1);
+ temp=w1*F1+w2*F2;
+ Q[tempd1][tempd2]=temp;*/
